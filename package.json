@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.106.4",
+    "@hookform/resolvers": "^5.0.1",
     "@microsoft/sp-component-base": "1.20.0",
     "@microsoft/sp-core-library": "1.20.0",
     "@microsoft/sp-lodash-subset": "1.20.0",
@@ -27,7 +28,9 @@
     "bootstrap": "^5.3.5",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "tslib": "2.3.1"
+    "react-hook-form": "^7.56.0",
+    "tslib": "2.3.1",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@microsoft/eslint-config-spfx": "1.20.2",

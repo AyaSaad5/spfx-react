@@ -9,6 +9,7 @@ export async function addEmployee(employee: Omit<IEmployee, "Id" | "ProfilePictu
             const uploadResult = await sp.web.getFolderByServerRelativePath("SiteAssets")
                 .files.addUsingPath(file.name, file, { Overwrite: true })
 
+                console.log(uploadResult)
             // const absoluteUrl = await sp.web.select("Url")().then(w => w.Url);
             // console.log(absoluteUrl)
             //     const siteUrl = 'https://quadintelligence.sharepoint.com'

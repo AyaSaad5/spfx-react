@@ -14,7 +14,9 @@ import { IEmployee } from '../Models/IEmployee';
 import { Label, PrimaryButton, TextField } from '@fluentui/react';
 import useFetchData from '../customHooks/useFetch';
 import { addEmployee, deleteEmployee, updateEmployee } from '../services/EmployeeService';
-
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from 'yup';
 
 export default function EmpolyeeList() {
 
@@ -25,56 +27,112 @@ export default function EmpolyeeList() {
     const [selectedEmployee, setSelectedEmployee] = useState<IEmployee | null>(null);
     const [employeeId, setEmployeeId] = useState<number | null>(null);
     const [file, setFile] = useState<File | null>(null);
-    const [employeeName, setEmployeeName] = useState("");
-    const [employeeJobTitle, setEmployeeJobTitle] = useState("");
-    const [employeeDepartment, setEmployeeDepartment] = useState("");
-    const [employeeEmail, setEmployeeEmail] = useState("");
+    // const [employeeName, setEmployeeName] = useState("");
+    // const [employeeJobTitle, setEmployeeJobTitle] = useState("");
+    // const [employeeDepartment, setEmployeeDepartment] = useState("");
+    // const [employeeEmail, setEmployeeEmail] = useState("");
     const { data, loading, error, refetch } = useFetchData<IEmployee[]>('EmpList')
     const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
 
-    const handleSubmit = async () => {
-        if (loading) {
-            return (
-                <div className="d-flex justify-content-center">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            );
-        }
-        if (error) {
-            return <div>Error: {error}</div>;
-        }
-        if (!file) {
-            alert("Please upload a profile picture.");
+    const employeeSchema = Yup.object().shape({
+        Title: Yup.string().required('Name is required'),
+        JobTitle: Yup.string().required('Job title is required'),
+        Department: Yup.string().required('Department is required'),
+        Email: Yup.string().email('Invalid email').required('Email is required'),
+
+    });
+
+    //   const onSubmit = async (data: any) => {
+    //     if (!file) {
+    //       alert('Please upload a profile picture.');
+    //       return;
+    //     }
+
+    //     try {
+    //       await addEmployee(
+    //         {
+    //           Title: data.Title,
+    //           JobTitle: data.JobTitle,
+    //           Department: data.Department,
+    //           Email: data.Email,
+    //         },
+    //         file
+    //       );
+
+    //       reset(); // Clear form
+    //       setFile(null);
+    //       fileInputRef.current && (fileInputRef.current.value = '');
+    //       refetch();
+    //     } catch (error) {
+    //       console.error("Error adding employee:", error);
+    //       alert("Error adding employee. Check console.");
+    //     }
+    //   };
+
+    const onSubmit = async (formData: IEmployee) => {
+        if (!file && !employeeId) {
+            alert('Please upload a profile picture.');
             return;
         }
 
         try {
-            await addEmployee({
-                Title: employeeName,
-                JobTitle: employeeJobTitle,
-                Department: employeeDepartment,
-                Email: employeeEmail
-            }, file)
+            if (employeeId) {
+                await updateEmployee(
+                    employeeId,
+                    {
+                        Title: formData.Title,
+                        JobTitle: formData.JobTitle,
+                        Department: formData.Department,
+                        Email: formData.Email
+                    },
+                    file!,
+                    data?.find(emp => emp.Id === employeeId)?.ProfilePictureUrl
+                );
+            } else {
+                await addEmployee(
+                    {
+                        Title: formData.Title,
+                        JobTitle: formData.JobTitle,
+                        Department: formData.Department,
+                        Email: formData.Email
+                    },
+                    file!
+                );
+            }
 
-            // Clear form
-            setEmployeeName('');
-            setEmployeeJobTitle('');
-            setEmployeeDepartment('');
-            setEmployeeEmail('');
+            reset({
+                Title: '',
+                JobTitle: '',
+                Department: '',
+                Email: ''
+            });
             setFile(null);
+            setEmployeeId(null);
             fileInputRef.current && (fileInputRef.current.value = '');
-
-            refetch()
-
+            refetch();
         } catch (error) {
-            console.error("Error adding employee:", error);
-            alert("Error adding employee. Check console.");
+            console.error("Error submitting employee:", error);
+            alert("Error occurred. Check console.");
         }
-
     };
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm({
+        resolver: yupResolver(employeeSchema),
+    });
+    // const validateEmail = (email: string): string => {
+    //     if (!email) return 'Email is required';
+    //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //     if (!emailRegex.test(email)) return 'Invalid email format';
+    //     return '';
+    //   };
+
+
 
     const filterdData = data?.filter(emp => {
         const query = searchQuery.toLowerCase();
@@ -87,46 +145,46 @@ export default function EmpolyeeList() {
     })
 
 
-    const updateItem = async () => {
+    // const updateItem = async () => {
 
-        if (employeeId) {
-            await updateEmployee(
-                employeeId,
-                {
-                    Title: employeeName,
-                    JobTitle: employeeJobTitle,
-                    Department: employeeDepartment,
-                    Email: employeeEmail
-                },
-                file!,
-                data?.find(emp => emp.Id === employeeId)?.ProfilePictureUrl
-            );
+    //     if (employeeId) {
+    //         await updateEmployee(
+    //             employeeId,
+    //             {
+    //                 Title: employeeName,
+    //                 JobTitle: employeeJobTitle,
+    //                 Department: employeeDepartment,
+    //                 Email: employeeEmail
+    //             },
+    //             file!,
+    //             data?.find(emp => emp.Id === employeeId)?.ProfilePictureUrl
+    //         );
 
-            setEmployeeId(null);
-            setEmployeeJobTitle('');
-            setEmployeeDepartment('');
-            setEmployeeEmail('');
-            setEmployeeName('')
-            setFile(null);
-            fileInputRef.current && (fileInputRef.current.value = '');
-            refetch()
-        }
-    }
+    //         setEmployeeId(null);
+    //         setEmployeeJobTitle('');
+    //         setEmployeeDepartment('');
+    //         setEmployeeEmail('');
+    //         setEmployeeName('')
+    //         setFile(null);
+    //         fileInputRef.current && (fileInputRef.current.value = '');
+    //         refetch()
+    //     }
+    // }
 
-    const editItem = (item: IEmployee) => {
-        setEmployeeName(item.Title);
-        setEmployeeJobTitle(item.JobTitle);
-        setEmployeeDepartment(item.Department);
-        setEmployeeEmail(item.Email)
-        setEmployeeId(item.Id!)
+    // const editItem = (item: IEmployee) => {
+    //     setEmployeeName(item.Title);
+    //     setEmployeeJobTitle(item.JobTitle);
+    //     setEmployeeDepartment(item.Department);
+    //     setEmployeeEmail(item.Email)
+    //     setEmployeeId(item.Id!)
 
-        const profilePicData = JSON.parse(item.ProfilePictureUrl)
-        console.log(profilePicData.fileName)
-        if (profilePicData.fileName) {
-            setFile(new File([], profilePicData.fileName)); // Handle file input for editing
-        }
-        console.log(employeeId)
-    };
+    //     const profilePicData = JSON.parse(item.ProfilePictureUrl)
+    //     console.log(profilePicData.fileName)
+    //     if (profilePicData.fileName) {
+    //         setFile(new File([], profilePicData.fileName)); // Handle file input for editing
+    //     }
+    //     console.log(employeeId)
+    // };
 
 
     // const deleteItem = async (id: number, profilePictureUrl: string) => {
@@ -138,6 +196,26 @@ export default function EmpolyeeList() {
     //     refetch()
 
     // }
+
+    const editItem = (item: IEmployee) => {
+        reset({
+            Title: item.Title,
+            JobTitle: item.JobTitle,
+            Department: item.Department,
+            Email: item.Email
+        });
+
+        setEmployeeId(item.Id!);
+
+        try {
+            const profilePicData = JSON.parse(item.ProfilePictureUrl);
+            if (profilePicData.fileName) {
+                setFile(new File([], profilePicData.fileName)); // placeholder for file input
+            }
+        } catch (err) {
+            console.warn("Invalid profile picture JSON.");
+        }
+    };
 
     const requestDelete = (id: number, profilePictureUrl: string) => {
         setEmployeeToDelete({ id, profilePictureUrl });
@@ -176,35 +254,39 @@ export default function EmpolyeeList() {
     };
 
 
-
-
     return (
 
         <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>Add Employee</h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
                 <TextField
                     label="Name"
-                    value={employeeName}
-                    onChange={(_, v) => setEmployeeName(v || '')}
-                />
-                <TextField
-                    label="Job Title"
-                    value={employeeJobTitle}
-                    onChange={(_, v) => setEmployeeJobTitle(v || '')}
-                />
-                <TextField
-                    label="Department"
-                    value={employeeDepartment}
-                    onChange={(_, v) => setEmployeeDepartment(v || '')}
-                />
-                <TextField
-                    label="Email"
-                    value={employeeEmail}
-                    onChange={(_, v) => setEmployeeEmail(v || '')}
+                    {...register("Title")}
+                    errorMessage={errors.Title?.message}
                 />
 
+                <TextField
+                    label="Job Title"
+                    {...register("JobTitle")}
+                    errorMessage={errors.JobTitle?.message}
+                />
+
+                <TextField
+                    label="Department"
+                    {...register("Department")}
+                    errorMessage={errors.Department?.message}
+                />
+
+                <TextField
+                    label="Email"
+                    {...register("Email")}
+                    errorMessage={errors.Email?.message}
+
+                />
+
+                {/* {emailError && <p style={{color:'red'}}>{emailError}</p>} */}
                 <div>
                     <Label style={{ marginBottom: '4px' }}>Profile Picture</Label>
                     <input
@@ -223,7 +305,7 @@ export default function EmpolyeeList() {
 
                 <PrimaryButton
                     text={employeeId ? 'Update' : 'Add'}
-                    onClick={employeeId ? updateItem : handleSubmit}
+                    onClick={handleSubmit(onSubmit)}
                     style={{
                         alignSelf: 'flex-end',
                         marginTop: '16px',
