@@ -14,7 +14,7 @@ import { IEmployee } from '../Models/IEmployee';
 import { Label, PrimaryButton, TextField } from '@fluentui/react';
 import useFetchData from '../customHooks/useFetch';
 import { addEmployee, deleteEmployee, updateEmployee } from '../services/EmployeeService';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 
@@ -118,13 +118,15 @@ export default function EmpolyeeList() {
     };
 
     const {
-        register,
+        control,
         handleSubmit,
         reset,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(employeeSchema),
     });
+
+    
     // const validateEmail = (email: string): string => {
     //     if (!email) return 'Email is required';
     //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -261,30 +263,60 @@ export default function EmpolyeeList() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                <TextField
-                    label="Name"
-                    {...register("Title")}
-                    errorMessage={errors.Title?.message}
-                />
 
-                <TextField
+            <Controller
+                    name="Title"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                        <TextField
+                            label="Name"
+                            {...field}
+                            errorMessage={errors.Title?.message}
+                        />
+                    )}
+                />
+                <Controller
+                name="JobTitle"
+                control={control}
+                defaultValue=""
+                render={({field}) => (
+                    <TextField
                     label="Job Title"
-                    {...register("JobTitle")}
+                    {...field}
                     errorMessage={errors.JobTitle?.message}
                 />
 
-                <TextField
+                )}
+                />
+
+                <Controller
+                name='Department'
+                control={control}
+                defaultValue=''
+                render={({field}) => (
+                    <TextField
                     label="Department"
-                    {...register("Department")}
+                    {...field}
                     errorMessage={errors.Department?.message}
                 />
-
-                <TextField
-                    label="Email"
-                    {...register("Email")}
-                    errorMessage={errors.Email?.message}
-
+                )}
                 />
+             
+             
+             <Controller
+             name='Email'
+             control={control}
+             defaultValue=''
+             render={({field}) => (
+                <TextField
+                label="Email"
+                {...field}
+                errorMessage={errors.Email?.message}
+
+            />
+             )}
+             />
 
                 {/* {emailError && <p style={{color:'red'}}>{emailError}</p>} */}
                 <div>
